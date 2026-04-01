@@ -263,10 +263,10 @@ export default function VelvetCalculator() {
         </div>
 
         <div style={{ padding: "24px 32px 48px", maxWidth: 1120, margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(300px, 380px) 1fr", gap: 28, alignItems: "start" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(300px, 380px) 1fr", gap: 28, alignItems: "stretch" }}>
 
             {/* Left: Inputs */}
-            <div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{
                 background: V.cardBg, border: `1px solid ${V.cardBorder}`,
                 borderRadius: 16, padding: 26,
@@ -296,6 +296,7 @@ export default function VelvetCalculator() {
                 background: V.cardBg, border: `1px solid ${V.cardBorder}`,
                 borderRadius: 16, padding: 22, marginTop: 16,
                 backdropFilter: "blur(16px)",
+                flex: 1, display: "flex", flexDirection: "column",
               }}>
                 <div style={{
                   fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.8,
