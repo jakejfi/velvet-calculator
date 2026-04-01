@@ -212,6 +212,8 @@ export default function VelvetCalculator() {
   const annualNetRevenue = netMonthlyRevenue * 12;
 
   const inHouseCost = 1500000;
+  const buildMonths = 12;
+  const opportunityCost = grossFeeRevenue * buildMonths;
   const velvet12MonthRevenue = netMonthlyRevenue * (12 - Math.ceil(launchMonths));
   const velvet12MonthCost = setupFee;
   const velvetNet12 = velvet12MonthRevenue - velvet12MonthCost;
@@ -357,9 +359,11 @@ export default function VelvetCalculator() {
                   Build vs Velvet — 12-Month Comparison
                 </div>
                 <ComparisonBar label="12-Month Net Revenue with Velvet" value={Math.max(velvetNet12, 0)}
-                  maxValue={Math.max(velvetNet12, inHouseCost, 1)} color={V.green} icon="⚡" />
+                  maxValue={Math.max(velvetNet12, opportunityCost, inHouseCost, 1)} color={V.green} icon="⚡" />
+                <ComparisonBar label="Opportunity Cost of Building In-House" value={opportunityCost}
+                  maxValue={Math.max(velvetNet12, opportunityCost, inHouseCost, 1)} color={V.red} icon="⏳" />
                 <ComparisonBar label="In-House Development Cost Saved" value={inHouseCost}
-                  maxValue={Math.max(velvetNet12, inHouseCost, 1)} color={V.gold} icon="🔧" />
+                  maxValue={Math.max(velvetNet12, opportunityCost, inHouseCost, 1)} color={V.gold} icon="🔧" />
               </div>
 
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 22 }}>
