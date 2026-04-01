@@ -198,7 +198,6 @@ export default function VelvetCalculator() {
   const [tradePercent, setTradePercent] = useState(0.05);
   const [avgVolume, setAvgVolume] = useState(5000);
   const [feePercent, setFeePercent] = useState(0.008);
-  const [buildMonths, setBuildMonths] = useState(12);
 
   const launchMonths = 0.5;
   const revShare = 0.20;
@@ -213,13 +212,10 @@ export default function VelvetCalculator() {
   const annualNetRevenue = netMonthlyRevenue * 12;
 
   const inHouseCost = 1500000;
-  const missedRevenue = grossFeeRevenue * buildMonths;
   const velvet12MonthRevenue = netMonthlyRevenue * (12 - Math.ceil(launchMonths));
-  const velvet12MonthCost = setupFee + maintenanceFee * 12;
+  const velvet12MonthCost = setupFee;
   const velvetNet12 = velvet12MonthRevenue - velvet12MonthCost;
-  const buildNet12 = grossFeeRevenue * Math.max(0, 12 - buildMonths) - inHouseCost;
-  const incrementalGain = velvetNet12 - Math.max(buildNet12, 0);
-  const totalEconomicUpside = incrementalGain + missedRevenue;
+  const totalEconomicUpside = inHouseCost + Math.max(velvetNet12, 0);
 
   return (
     <div style={{
@@ -329,7 +325,7 @@ export default function VelvetCalculator() {
             </div>
 
             {/* Right: Results */}
-            <div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
               {/* Client economics */}
               <div style={{
                 background: V.cardBg, border: `1px solid ${V.cardBorder}`,
@@ -360,18 +356,16 @@ export default function VelvetCalculator() {
                 <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.8, color: V.textMuted, marginBottom: 20 }}>
                   Build vs Velvet — 12-Month Comparison
                 </div>
-                <ComparisonBar label="12-Month Revenue with Velvet" value={Math.max(velvetNet12, 0)}
-                  maxValue={Math.max(velvetNet12, missedRevenue, inHouseCost, 1)} color={V.green} icon="⚡" />
-                <ComparisonBar label="Revenue Lost While Building" value={missedRevenue}
-                  maxValue={Math.max(velvetNet12, missedRevenue, inHouseCost, 1)} color={V.red} icon="⏳" />
-                <ComparisonBar label="In-House Development Cost" value={inHouseCost}
-                  maxValue={Math.max(velvetNet12, missedRevenue, inHouseCost, 1)} color={V.gold} icon="🔧" />
+                <ComparisonBar label="12-Month Net Revenue with Velvet" value={Math.max(velvetNet12, 0)}
+                  maxValue={Math.max(velvetNet12, inHouseCost, 1)} color={V.green} icon="⚡" />
+                <ComparisonBar label="In-House Development Cost Saved" value={inHouseCost}
+                  maxValue={Math.max(velvetNet12, inHouseCost, 1)} color={V.gold} icon="🔧" />
               </div>
 
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 22 }}>
                 <MetricCard label="Monthly Net Revenue" value={netMonthlyRevenue}
                   color={V.green} glow={V.greenGlow} sub="After Velvet fees & maintenance" />
-                <MetricCard label="Annual Net Revenue" value={annualNetRevenue}
+                <MetricCard label="Annual Net Profit" value={annualNetRevenue}
                   color={V.purple} glow={V.purpleGlow} sub="12-month projection" />
               </div>
 
@@ -381,6 +375,7 @@ export default function VelvetCalculator() {
                 border: `1px solid ${V.purpleBorder}`,
                 borderRadius: 16, padding: 32, textAlign: "center",
                 position: "relative", overflow: "hidden",
+                flex: 1, display: "flex", flexDirection: "column", justifyContent: "center",
               }}>
                 <div style={{
                   position: "absolute", top: 0, left: 0, right: 0, height: 2,
@@ -404,7 +399,7 @@ export default function VelvetCalculator() {
                   <AnimatedNumber value={totalEconomicUpside} />
                 </div>
                 <div style={{ fontSize: 12, color: V.textMuted, marginTop: 8, position: "relative" }}>
-                  Revenue gained + opportunity cost avoided over 12 months
+                  Dev cost saved + net revenue earned with Velvet over 12 months
                 </div>
               </div>
             </div>
