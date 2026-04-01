@@ -62,8 +62,35 @@ function AnimatedNumber({ value, format = "currency", duration = 600 }) {
 
 function SliderInput({ label, value, onChange, suffix, description, min = 0, max, step = 1 }) {
   const isPercent = suffix === "%";
-  const displayVal = isPercent ? (value * 100).toFixed(1) : value;
   const pct = ((value - min) / (max - min)) * 100;
+
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState("");
+
+  const displayVal = isPercent
+    ? `${(value * 100).toFixed(2)}%`
+    : suffix === "$"
+      ? `$${Number(value).toLocaleString()}`
+      : Number(value).toLocaleString();
+
+  const handleClick = () => {
+    setEditing(true);
+    setEditText(isPercent ? (value * 100).toFixed(2) : String(value));
+  };
+
+  const handleBlur = () => {
+    setEditing(false);
+    let parsed = parseFloat(editText.replace(/[^0-9.]/g, ""));
+    if (isNaN(parsed)) return;
+    if (isPercent) parsed = parsed / 100;
+    parsed = Math.max(min, Math.min(max, parsed));
+    onChange(parsed);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") e.target.blur();
+    if (e.key === "Escape") { setEditing(false); }
+  };
 
   return (
     <div style={{ marginBottom: 22 }}>
@@ -71,12 +98,35 @@ function SliderInput({ label, value, onChange, suffix, description, min = 0, max
         <label style={{ fontSize: 13, fontWeight: 500, color: V.text, fontFamily: "'DM Sans', sans-serif" }}>
           {label}
         </label>
-        <span style={{
-          fontSize: 15, fontWeight: 700, color: V.purpleBright,
-          fontFamily: "'JetBrains Mono', monospace",
-        }}>
-          {isPercent ? `${displayVal}%` : (suffix === "$" ? `$${Number(value).toLocaleString()}` : Number(value).toLocaleString())}
-        </span>
+        {editing ? (
+          <input
+            autoFocus
+            type="text"
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            style={{
+              fontSize: 15, fontWeight: 700, color: V.purpleBright,
+              fontFamily: "'JetBrains Mono', monospace",
+              background: "rgba(190,130,243,0.1)", border: `1px solid ${V.purple}`,
+              borderRadius: 6, padding: "2px 8px", width: 120, textAlign: "right",
+              outline: "none",
+            }}
+          />
+        ) : (
+          <span
+            onClick={handleClick}
+            title="Click to type a value"
+            style={{
+              fontSize: 15, fontWeight: 700, color: V.purpleBright,
+              fontFamily: "'JetBrains Mono', monospace",
+              cursor: "pointer", borderBottom: `1px dashed ${V.purpleDim}`,
+              paddingBottom: 1,
+            }}>
+            {displayVal}
+          </span>
+        )}
       </div>
       <div style={{ position: "relative" }}>
         <input
@@ -151,7 +201,7 @@ export default function VelvetCalculator() {
   const [buildMonths, setBuildMonths] = useState(12);
 
   const launchMonths = 0.5;
-  const revShare = 0.15;
+  const revShare = 0.20;
   const setupFee = 50000;
   const maintenanceFee = 6000;
 
@@ -232,15 +282,13 @@ export default function VelvetCalculator() {
                 </div>
 
                 <SliderInput label="Monthly Active Users" value={mau} onChange={setMau}
-                  min={1000} max={2000000} step={1000} description="Total active wallet users per month" />
+                  min={1000} max={1000000} step={1000} description="Total active wallet users per month" />
                 <SliderInput label="Users Who Trade" value={tradePercent} onChange={setTradePercent}
                   suffix="%" min={0.005} max={0.30} step={0.005} description="Share of MAU expected to use trading" />
                 <SliderInput label="Avg Volume per Trader" value={avgVolume} onChange={setAvgVolume}
                   suffix="$" min={100} max={50000} step={100} description="Average monthly volume per active trader" />
                 <SliderInput label="Wallet Fee on Volume" value={feePercent} onChange={setFeePercent}
-                  suffix="%" min={0.001} max={0.03} step={0.001} description="Fee earned by wallet on trading volume" />
-                <SliderInput label="Time to Build In-House" value={buildMonths} onChange={setBuildMonths}
-                  min={3} max={24} step={1} description="Estimated delay if built internally" />
+                  suffix="%" min={0.0005} max={0.02} step={0.0005} description="Fee earned by wallet on trading volume" />
               </div>
 
               {/* Velvet Terms */}
@@ -264,7 +312,7 @@ export default function VelvetCalculator() {
                 </div>
                 {[
                   ["Launch time", "2–4 weeks"],
-                  ["Revenue share", "15%"],
+                  ["Revenue share", "20%"],
                   ["Setup fee", "$50,000"],
                   ["Monthly maintenance", "$6,000"],
                 ].map(([k, v], i) => (
@@ -281,13 +329,6 @@ export default function VelvetCalculator() {
 
             {/* Right: Results */}
             <div>
-              <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 22 }}>
-                <MetricCard label="Monthly Net Revenue" value={netMonthlyRevenue}
-                  color={V.green} glow={V.greenGlow} sub="After Velvet fees & maintenance" />
-                <MetricCard label="Annual Net Revenue" value={annualNetRevenue}
-                  color={V.purple} glow={V.purpleGlow} sub="12-month projection" />
-              </div>
-
               {/* Client economics */}
               <div style={{
                 background: V.cardBg, border: `1px solid ${V.cardBorder}`,
@@ -324,6 +365,13 @@ export default function VelvetCalculator() {
                   maxValue={Math.max(velvetNet12, missedRevenue, inHouseCost, 1)} color={V.red} icon="⏳" />
                 <ComparisonBar label="In-House Development Cost" value={inHouseCost}
                   maxValue={Math.max(velvetNet12, missedRevenue, inHouseCost, 1)} color={V.gold} icon="🔧" />
+              </div>
+
+              <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 22 }}>
+                <MetricCard label="Monthly Net Revenue" value={netMonthlyRevenue}
+                  color={V.green} glow={V.greenGlow} sub="After Velvet fees & maintenance" />
+                <MetricCard label="Annual Net Revenue" value={annualNetRevenue}
+                  color={V.purple} glow={V.purpleGlow} sub="12-month projection" />
               </div>
 
               {/* Total upside */}
